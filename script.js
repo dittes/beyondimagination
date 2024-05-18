@@ -109,7 +109,7 @@ function init() {
 
 
 
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 180; i++) {
     let radius = 2 + Math.random() * 40;
     World.add(engine.world, Bodies.circle(
     40 + Math.random() * width - 80,
