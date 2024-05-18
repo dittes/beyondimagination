@@ -72,6 +72,9 @@ body {
     font-size: 0.3em;
   }
   a.white-mode, a.white-mode:link, a.white-mode:visited, a.white-mode:active {
-    font-size: 0.2em;
+    font-size: 0.3em;
+  }
+  .more-pens {
+    font-size: 0.3em;
   }
 }
