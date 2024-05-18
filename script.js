@@ -109,11 +109,11 @@ function init() {
 
 
 
-  for (let i = 0; i < 230; i++) {
-    let radius = 2 + Math.random() * 20;
+  for (let i = 0; i < 200; i++) {
+    let radius = 2 + Math.random() * 60;
     World.add(engine.world, Bodies.circle(
     40 + Math.random() * width - 80,
-    40 + Math.random() * 100,
+    40 + Math.random() * 250,
     radius, {
       render: {
         fillStyle: ["#4285F4", "#EA4335", "#FBBC05", "#34A853"][Math.round(Math.random() * 3)] } }));
@@ -135,8 +135,8 @@ function init() {
   engine.world.gravity.y = 4;
   function update() {
     if (inc > 8) {
-      engine.world.gravity.x = Math.cos(inc / 55);
-      engine.world.gravity.y = Math.sin(inc / 55);
+      engine.world.gravity.x = Math.cos(inc / 90);
+      engine.world.gravity.y = Math.sin(inc / 90);
     }
     inc++;
     idRAF = requestAnimationFrame(update.bind(this));
