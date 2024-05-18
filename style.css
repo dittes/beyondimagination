@@ -64,14 +64,14 @@ body {
   font-family: Georgia, times new roman, serif;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 667px) {
   .title h1 {
-    font-size: 240px;
+    font-size: 2em;
   }
   .title h3 {
-    font-size: 60px;
+    font-size: 0.3em;
   }
   a.white-mode, a.white-mode:link, a.white-mode:visited, a.white-mode:active {
-    font-size: 48px;
+    font-size: 0.2em;
   }
 }
