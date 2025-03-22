@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Microbiome Builder</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f3e6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #3e2723;
+            margin-bottom: 10px;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .controls {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .control-panel {
+            background-color: #d7ccc8;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stats {
+            display: flex;
+            width: 100%;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background-color: #bcaaa4;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px;
+            width: 120px;
+            text-align: center;
+        }
+        .stat-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .soil-container {
+            width: 100%;
+            height: 400px;
+            background-color: #8d6e63;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .soil-layer {
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            transition: height 0.5s;
+        }
+        .mineral-layer {
+            background-color: #a1887f;
+            height: 100%;
+        }
+        .organic-layer {
+            background-color: #5d4037;
+            height: 0%;
+        }
+        .microbe {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.5s;
+        }
+        .bacteria {
+            background-color: #66bb6a;
+        }
+        .fungi {
+            background-color: #fff59d;
+        }
+        .photosynthetic {
+            background-color: #4dd0e1;
+        }
+        .button {
+            background-color: #4e342e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #3e2723;
+        }
+        .button:disabled {
+            background-color: #d7ccc8;
+            color: #a1887f;
+            cursor: not-allowed;
+        }
+        .log-container {
+            width: 100%;
+            max-width: 800px;
+            height: 100px;
+            margin-top: 20px;
+            overflow-y: auto;
+            background-color: #efebe9;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .seasons {
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .season {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .season.active {
+            background-color: #a1887f;
+            color: white;
+        }
+        .tutorial {
+            background-color: #efebe9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-width: 800px;
+        }
+        .win-message {
+            background-color: #81c784;
+            color: #1b5e20;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Soil Microbiome Builder</h1>
+    <div class="tutorial">
+        <h3>Goal: Create a healthy soil ecosystem!</h3>
+        <p>Your job is to transform nutrient-poor soil into a thriving ecosystem using artificial humic substances (A-HS) and managing the microbiome.</p>
+        <p>Maintain a balance between different types of microorganisms across four seasons to create sustainable, carbon-rich soil.</p>
+        <p><strong>How to play:</strong></p>
+        <ul>
+            <li>Add A-HS to boost microbial growth and improve soil properties</li>
+            <li>Add minerals to provide essential nutrients</li>
+            <li>Toggle light to encourage photosynthetic bacteria</li>
+            <li>Progress through seasons to see how your soil evolves</li>
+            <li>Reach a carbon content of 5% to win!</li>
+        </ul>
+    </div>
+
+    <div class="win-message" id="winMessage">
+        <h2>Congratulations!</h2>
+        <p>You've created a sustainable soil ecosystem with 5% carbon content!</p>
+        <p>Your soil is now rich in organic matter and supports a diverse microbiome.</p>
+        <button class="button" onclick="resetGame()">Play Again</button>
+    </div>
+
+    <div class="game-container">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">Day</div>
+                <div id="day">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Season</div>
+                <div id="season">Spring</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Carbon %</div>
+                <div id="carbon">1.0%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Bacteria</div>
+                <div id="bacteriaCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Fungi</div>
+                <div id="fungiCount">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="control-panel">
+                <h3>Resources</h3>
+                <button class="button" id="addAhsBtn" onclick="addAhs()">Add A-HS (5 units)</button>
+                <button class="button" id="addMineralsBtn" onclick="addMinerals()">Add Minerals</button>
+            </div>
+            <div class="control-panel">
+                <h3>Environment</h3>
+                <button class="button" id="toggleLightBtn" onclick="toggleLight()">Toggle Light: ON</button>
+                <button class="button" id="nextSeasonBtn" onclick="nextSeason()">Next Season</button>
+            </div>
+        </div>
+
+        <div class="soil-container" id="soilContainer">
+            <div class="soil-layer mineral-layer" id="mineralLayer"></div>
+            <div class="soil-layer organic-layer" id="organicLayer"></div>
+        </div>
+
+        <div class="seasons">
+            <div class="season active" id="seasonSpring">Spring</div>
+            <div class="season" id="seasonSummer">Summer</div>
+            <div class="season" id="seasonFall">Fall</div>
+            <div class="season" id="seasonWinter">Winter</div>
+        </div>
+    </div>
+
+    <div class="log-container" id="logContainer">
+        <div class="log-entry">Welcome to Soil Microbiome Builder! Add A-HS to get started.</div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            day: 0,
+            season: 'Spring',
+            seasonIndex: 0,
+            seasons: ['Spring', 'Summer', 'Fall', 'Winter'],
+            carbon: 1.0,
+            organicMatter: 5,
+            lightOn: true,
+            bacteria: 0,
+            fungi: 0,
+            photosynthetic: 0,
+            microbes: [],
+            ahsAdded: 0,
+            mineralsAdded: 0
+        };
+
+        // DOM elements
+        const soilContainer = document.getElementById('soilContainer');
+        const organicLayer = document.getElementById('organicLayer');
+        const mineralLayer = document.getElementById('mineralLayer');
+        const logContainer = document.getElementById('logContainer');
+        const toggleLightBtn = document.getElementById('toggleLightBtn');
+        const winMessage = document.getElementById('winMessage');
+
+        // Initialize
+        updateDisplay();
+
+        // Game loop
+        const gameLoop = setInterval(() => {
+            gameState.day++;
+            updateMicrobes();
+            updateCarbon();
+            updateDisplay();
+            checkWinCondition();
+        }, 1000);
+
+        function addAhs() {
+            gameState.ahsAdded += 5;
+            logMessage("Added 5 units of Artificial Humic Substances to soil");
+            
+            // Boost bacterial growth based on season
+            const boost = gameState.season === 'Spring' || gameState.season === 'Summer' ? 5 : 3;
+            addMicrobes('bacteria', boost);
+            
+            if (gameState.lightOn && (gameState.season === 'Spring' || gameState.season === 'Summer')) {
+                addMicrobes('photosynthetic', 2);
+            }
+            
+            updateDisplay();
+        }
+
+        function addMinerals() {
+            gameState.mineralsAdded += 5;
+            logMessage("Added minerals to provide essential nutrients");
+            
+            // Boost fungi growth
+            addMicrobes('fungi', 3);
+            
+            updateDisplay();
+        }
+
+        function toggleLight() {
+            gameState.lightOn = !gameState.lightOn;
+            toggleLightBtn.textContent = `Toggle Light: ${gameState.lightOn ? 'ON' : 'OFF'}`;
+            
+            logMessage(`Light is now ${gameState.lightOn ? 'ON' : 'OFF'}`);
+            
+            if (gameState.lightOn) {
+                addMicrobes('photosynthetic', 2);
+            } else {
+                // When light is off, photosynthetic bacteria decline
+                gameState.microbes = gameState.microbes.filter(microbe => {
+                    if (microbe.type === 'photosynthetic') {
+                        return Math.random() > 0.5; // 50% chance to remove each photosynthetic
+                    }
+                    return true;
+                });
+                gameState.photosynthetic = gameState.microbes.filter(m => m.type === 'photosynthetic').length;
+            }
+            
+            updateDisplay();
+        }
+
+        function nextSeason() {
+            gameState.seasonIndex = (gameState.seasonIndex + 1) % 4;
+            gameState.season = gameState.seasons[gameState.seasonIndex];
+            
+            logMessage(`Season changed to ${gameState.season}`);
+            
+            // Update season indicator
+            document.querySelectorAll('.season').forEach(el => el.classList.remove('active'));
+            document.getElementById(`season${gameState.season}`).classList.add('active');
+            
+            // Season effects
+            seasonalEffects();
+            
+            updateDisplay();
+        }
+
+        function seasonalEffects() {
+            switch(gameState.season) {
+                case 'Spring':
+                    logMessage("Spring brings optimal growth conditions");
+                    if (gameState.lightOn) {
+                        addMicrobes('photosynthetic', 4);
+                    }
+                    addMicrobes('bacteria', 3);
+                    break;
+                case 'Summer':
+                    logMessage("Summer heat increases microbial activity");
+                    addMicrobes('bacteria', 4);
+                    addMicrobes('fungi', 2);
+                    break;
+                case 'Fall':
+                    logMessage("Fall brings leaf litter and organic matter");
+                    gameState.organicMatter += 10;
+                    addMicrobes('fungi', 5);
+                    break;
+                case 'Winter':
+                    logMessage("Winter slows microbial activity");
+                    // Remove some microbes due to cold
+                    gameState.microbes = gameState.microbes.filter(() => Math.random() > 0.3);
+                    break;
+            }
+        }
+
+        function addMicrobes(type, count) {
+            for (let i = 0; i < count; i++) {
+                const microbe = {
+                    type: type,
+                    x: Math.random() * 100,
+                    y: 10 + Math.random() * 80,
+                    element: document.createElement('div')
+                };
+                
+                microbe.element.classList.add('microbe', type);
+                microbe.element.style.left = `${microbe.x}%`;
+                microbe.element.style.bottom = `${microbe.y}%`;
+                
+                soilContainer.appendChild(microbe.element);
+                gameState.microbes.push(microbe);
+                
+                // Update counts
+                gameState[type]++;
+            }
+        }
+
+        function updateMicrobes() {
+            // Move microbes
+            gameState.microbes.forEach(microbe => {
+                if (Math.random() > 0.7) {  // 30% chance to move
+                    microbe.x += (Math.random() - 0.5) * 10;
+                    microbe.y += (Math.random() - 0.5) * 10;
+                    
+                    // Keep in bounds
+                    microbe.x = Math.max(0, Math.min(100, microbe.x));
+                    microbe.y = Math.max(5, Math.min(90, microbe.y));
+                    
+                    microbe.element.style.left = `${microbe.x}%`;
+                    microbe.element.style.bottom = `${microbe.y}%`;
+                }
+            });
+            
+            // Reproduction and death
+            const newMicrobes = [];
+            gameState.microbes = gameState.microbes.filter(microbe => {
+                // Chance to reproduce based on type and season
+                let reproductionChance = 0.01;  // Base 1% chance
+                
+                if (microbe.type === 'bacteria') {
+                    reproductionChance += gameState.ahsAdded * 0.001;
+                    if (gameState.season === 'Summer') reproductionChance += 0.02;
+                }
+                else if (microbe.type === 'fungi') {
+                    reproductionChance += gameState.mineralsAdded * 0.001;
+                    if (gameState.season === 'Fall') reproductionChance += 0.03;
+                }
+                else if (microbe.type === 'photosynthetic') {
+                    if (!gameState.lightOn) reproductionChance = 0;
+                    else if (gameState.season === 'Spring') reproductionChance += 0.04;
+                }
+                
+                // Try to reproduce
+                if (Math.random() < reproductionChance) {
+                    const newMicrobe = {
+                        type: microbe.type,
+                        x: microbe.x + (Math.random() - 0.5) * 10,
+                        y: microbe.y + (Math.random() - 0.5) * 10,
+                        element: document.createElement('div')
+                    };
+                    
+                    // Keep in bounds
+                    newMicrobe.x = Math.max(0, Math.min(100, newMicrobe.x));
+                    newMicrobe.y = Math.max(5, Math.min(90, newMicrobe.y));
+                    
+                    newMicrobe.element.classList.add('microbe', microbe.type);
+                    newMicrobe.element.style.left = `${newMicrobe.x}%`;
+                    newMicrobe.element.style.bottom = `${newMicrobe.y}%`;
+                    
+                    newMicrobes.push(newMicrobe);
+                    gameState[microbe.type]++;
+                }
+                
+                // Chance to die based on season
+                let deathChance = 0.01;  // Base 1% chance
+                
+                if (gameState.season === 'Winter') {
+                    deathChance += 0.04;  // Higher death rate in winter
+                    if (microbe.type === 'photosynthetic') deathChance += 0.02;
+                }
+                
+                if (Math.random() < deathChance) {
+                    soilContainer.removeChild(microbe.element);
+                    gameState[microbe.type]--;
+                    return false;
+                }
+                return true;
+            });
+            
+            // Add new microbes to container and state
+            newMicrobes.forEach(microbe => {
+                soilContainer.appendChild(microbe.element);
+                gameState.microbes.push(microbe);
+            });
+        }
+
+        function updateCarbon() {
+            // Calculate carbon based on microbes and organic matter
+            const baseContribution = 0.001;  // Base contribution per microbe
+            
+            let microbeContribution = gameState.bacteria * baseContribution +
+                                      gameState.fungi * baseContribution * 1.5 +
+                                      gameState.photosynthetic * baseContribution * 2;
+            
+            // Seasonal modifiers
+            if (gameState.season === 'Fall') {
+                microbeContribution *= 1.3;  // More carbon sequestration in fall
+            } else if (gameState.season === 'Winter') {
+                microbeContribution *= 0.5;  // Less in winter
+            }
+            
+            gameState.carbon += microbeContribution;
+            
+            // Update organic layer visualization
+            const organicHeight = (gameState.carbon / 10) * 100;  // 10% carbon = 100% height
+            organicLayer.style.height = `${Math.min(organicHeight, 100)}%`;
+        }
+
+        function updateDisplay() {
+            // Update stats display
+            document.getElementById('day').textContent = gameState.day;
+            document.getElementById('season').textContent = gameState.season;
+            document.getElementById('carbon').textContent = gameState.carbon.toFixed(1) + '%';
+            document.getElementById('bacteriaCount').textContent = gameState.bacteria;
+            document.getElementById('fungiCount').textContent = gameState.fungi;
+        }
+
+        function logMessage(message) {
+            const logEntry = document.createElement('div');
+            logEntry.classList.add('log-entry');
+            logEntry.textContent = `Day ${gameState.day}: ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function checkWinCondition() {
+            if (gameState.carbon >= 5) {
+                clearInterval(gameLoop);
+                winMessage.style.display = 'block';
+                logMessage("Congratulations! You've created a sustainable soil ecosystem!");
+            }
+        }
+
+        function resetGame() {
+            // Clear microbes
+            gameState.microbes.forEach(microbe => {
+                if (microbe.element.parentNode) {
+                    soilContainer.removeChild(microbe.element);
+                }
+            });
+            
+            // Reset game state
+            Object.assign(gameState, {
+                day: 0,
+                season: 'Spring',
+                seasonIndex: 0,
+                carbon: 1.0,
+                organicMatter: 5,
+                lightOn: true,
+                bacteria: 0,
+                fungi: 0,
+                photosynthetic: 0,
+                microbes: [],
+                ahsAdded: 0,
+                mineralsAdded: 0
+            });
+            
+            // Reset display
+            updateDisplay();
+            organicLayer.style.height = '10%';
+            toggleLightBtn.textContent = 'Toggle Light: ON';
+            document.querySelectorAll('.season').forEach(el => el.classList.remove('active'));
+            document.getElementById('seasonSpring').classList.add('active');
+            
+            // Clear log
+            logContainer.innerHTML = '<div class="log-entry">Welcome to Soil Microbiome Builder! Add A-HS to get started.</div>';
+            
+            // Hide win message
+            winMessage.style.display = 'none';
+            
+            // Restart game loop
+            clearInterval(gameLoop);
+            setInterval(() => {
+                gameState.day++;
+                updateMicrobes();
+                updateCarbon();
+                updateDisplay();
+                checkWinCondition();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
